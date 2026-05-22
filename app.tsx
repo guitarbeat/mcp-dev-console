@@ -9,8 +9,8 @@ import { initialize, listTools, clearSession } from './utils/mcp';
 import { PRESETS } from './utils/presets';
 import './styles.css';
 
-const DEFAULT_URL = 'https://actual-mcp.onrender.com/mcp';
-const DEFAULT_TOKEN = '9d7ed444f28745aa225d7ab219c00b1500414949121412002b2d34ad7f1bc97b';
+const DEFAULT_URL = '';
+const DEFAULT_TOKEN = '';
 
 const App: React.FC<{}> = () => {
   const [url, setUrl] = useState(DEFAULT_URL);

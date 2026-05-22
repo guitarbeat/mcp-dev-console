@@ -1,134 +1,85 @@
-import { PresetCall } from '../types';
+// Tool category presets — extend this file to add presets for your MCP server.
+//
+// Presets organize tools into browsable categories in the sidebar.
+// Tools not matching any preset are grouped under "Other".
+//
+// Example: To add presets for a custom MCP server, add entries like:
+//
+//   'my-tool-name': {
+//     description: 'What the tool does',
+//     category: 'My Category',
+//     args: { param1: 'default' }
+//   }
 
-function getDateStr(date: Date): string {
-  return date.toISOString().slice(0, 10);
+export interface ToolPreset {
+  description: string;
+  category: string;
+  args?: Record<string, unknown>;
 }
 
-const today = new Date();
-const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+// ─── Actual Budget MCP Presets ───────────────────────────────────────────────
+// These presets are designed for the Actual Budget MCP Server.
+// See: https://github.com/guitarbeat/Actual-MCP-Server
+// Remove or replace these with presets for your own MCP server.
 
-export const PRESETS: PresetCall[] = [
-  // Budget
-  {
-    id: 'this-month-spending',
-    label: 'This Month Spending',
-    description: 'Category breakdown for current month',
-    icon: '📊',
-    tool: 'spending-by-category',
-    args: { startDate: getDateStr(thisMonthStart), endDate: getDateStr(today) },
-    category: 'budget',
-  },
-  {
-    id: 'last-month-spending',
-    label: 'Last Month Spending',
-    description: 'Category breakdown for last month',
-    icon: '📅',
-    tool: 'spending-by-category',
-    args: { startDate: getDateStr(lastMonthStart), endDate: getDateStr(lastMonthEnd) },
-    category: 'budget',
-  },
-  {
-    id: 'monthly-summary-3m',
-    label: '3-Month Summary',
-    description: 'Income, expenses & savings rate',
-    icon: '📈',
-    tool: 'monthly-summary',
-    args: { months: 3 },
-    category: 'budget',
-  },
-  {
-    id: 'monthly-summary-6m',
-    label: '6-Month Summary',
-    description: 'Longer-term financial trend',
-    icon: '📉',
-    tool: 'monthly-summary',
-    args: { months: 6 },
-    category: 'budget',
-  },
+export const TOOL_PRESETS: Record<string, ToolPreset> = {
+  // Accounts
+  'get-accounts':           { description: 'List all accounts',                    category: '🏦 Accounts' },
+  'get-account-balance':    { description: 'Get account balance',                  category: '🏦 Accounts',    args: { accountId: '' } },
+  'create-account':         { description: 'Create a new account',                 category: '🏦 Accounts',    args: { name: '', type: 'checking' } },
+  'update-account':         { description: 'Update account details',               category: '🏦 Accounts',    args: { id: '' } },
+  'delete-account':         { description: 'Delete an account',                    category: '🏦 Accounts',    args: { id: '' } },
+  'close-account':          { description: 'Close (archive) an account',           category: '🏦 Accounts',    args: { id: '' } },
+  'reopen-account':         { description: 'Reopen a closed account',              category: '🏦 Accounts',    args: { id: '' } },
+
   // Transactions
-  {
-    id: 'uncategorized',
-    label: 'Uncategorized',
-    description: 'All transactions missing a category',
-    icon: '❓',
-    tool: 'get-transactions',
-    args: { accountId: 'all', categoryName: 'uncategorized', limit: 50 },
-    category: 'transactions',
-  },
-  {
-    id: 'recent-30',
-    label: 'Recent 30 Days',
-    description: 'Last 30 days across all accounts',
-    icon: '🕐',
-    tool: 'get-transactions',
-    args: { accountId: 'all', startDate: getDateStr(thirtyDaysAgo), endDate: getDateStr(today), limit: 30 },
-    category: 'transactions',
-  },
-  {
-    id: 'this-month-txns',
-    label: 'This Month',
-    description: 'All transactions this month',
-    icon: '📋',
-    tool: 'get-transactions',
-    args: { accountId: 'all', startDate: getDateStr(thisMonthStart), endDate: getDateStr(today), limit: 100 },
-    category: 'transactions',
-  },
-  // Accounts & data
-  {
-    id: 'all-accounts',
-    label: 'All Accounts',
-    description: 'Accounts with current balances',
-    icon: '🏦',
-    tool: 'get-accounts',
-    args: {},
-    category: 'accounts',
-  },
-  {
-    id: 'get-payees',
-    label: 'All Payees',
-    description: 'Full list of payees/merchants',
-    icon: '👤',
-    tool: 'get-payees',
-    args: {},
-    category: 'accounts',
-  },
-  {
-    id: 'get-categories',
-    label: 'Categories',
-    description: 'All categories grouped',
-    icon: '🏷️',
-    tool: 'get-grouped-categories',
-    args: {},
-    category: 'accounts',
-  },
-  {
-    id: 'get-rules',
-    label: 'Rules',
-    description: 'Auto-categorization rules',
-    icon: '⚙️',
-    tool: 'get-rules',
-    args: {},
-    category: 'server',
-  },
-  {
-    id: 'get-schedules',
-    label: 'Schedules',
-    description: 'Recurring transaction schedules',
-    icon: '🔁',
-    tool: 'get-schedules',
-    args: {},
-    category: 'server',
-  },
-  {
-    id: 'financial-insights',
-    label: 'Financial Insights',
-    description: 'AI-generated spending insights',
-    icon: '💡',
-    tool: 'get-financial-insights',
-    args: {},
-    category: 'budget',
-  },
-];
+  'get-transactions':       { description: 'Query transactions with filters',      category: '💳 Transactions', args: { accountId: '' } },
+  'create-transaction':     { description: 'Create a new transaction',             category: '💳 Transactions', args: { accountId: '', date: '', amount: 0 } },
+  'update-transaction':     { description: 'Update a transaction',                 category: '💳 Transactions', args: { id: '' } },
+  'delete-transaction':     { description: 'Delete a transaction',                 category: '💳 Transactions', args: { id: '' } },
+  'import-transactions':    { description: 'Bulk import transactions',             category: '💳 Transactions', args: { accountId: '', transactions: [] } },
+
+  // Categories
+  'get-categories':         { description: 'List all categories',                  category: '📂 Categories' },
+  'create-category':        { description: 'Create a new category',                category: '📂 Categories',  args: { name: '', groupId: '' } },
+  'update-category':        { description: 'Update a category',                    category: '📂 Categories',  args: { id: '' } },
+  'delete-category':        { description: 'Delete a category',                    category: '📂 Categories',  args: { id: '' } },
+  'get-category-groups':    { description: 'List category groups',                 category: '📂 Categories' },
+  'create-category-group':  { description: 'Create a category group',              category: '📂 Categories',  args: { name: '' } },
+  'update-category-group':  { description: 'Update a category group',              category: '📂 Categories',  args: { id: '' } },
+  'delete-category-group':  { description: 'Delete a category group',              category: '📂 Categories',  args: { id: '' } },
+
+  // Payees
+  'get-payees':             { description: 'List all payees',                      category: '👤 Payees' },
+  'create-payee':           { description: 'Create a new payee',                   category: '👤 Payees',      args: { name: '' } },
+  'update-payee':           { description: 'Update a payee',                       category: '👤 Payees',      args: { id: '' } },
+  'delete-payee':           { description: 'Delete a payee',                       category: '👤 Payees',      args: { id: '' } },
+
+  // Budget
+  'get-budget-month':       { description: 'Get budget data for a month',          category: '📊 Budget',      args: { month: '' } },
+  'set-budget-amount':      { description: 'Set budget for a category',            category: '📊 Budget',      args: { month: '', categoryId: '', amount: 0 } },
+  'get-budget-summary':     { description: 'Budget summary with variances',        category: '📊 Budget',      args: { month: '' } },
+
+  // Analytics
+  'spending-by-category':   { description: 'Spending breakdown by category',       category: '📈 Analytics',   args: { startDate: '', endDate: '' } },
+  'spending-trends':        { description: 'Monthly spending trends',              category: '📈 Analytics',   args: { startDate: '', endDate: '' } },
+  'monthly-summary':        { description: 'Full monthly financial summary',       category: '📈 Analytics',   args: { month: '' } },
+
+  // Rules & Schedules
+  'get-rules':              { description: 'List transaction rules',               category: '⚙️ Rules' },
+  'create-rule':            { description: 'Create a transaction rule',            category: '⚙️ Rules',       args: { conditions: [], actions: [] } },
+  'update-rule':            { description: 'Update a rule',                        category: '⚙️ Rules',       args: { id: '' } },
+  'delete-rule':            { description: 'Delete a rule',                        category: '⚙️ Rules',       args: { id: '' } },
+  'get-schedules':          { description: 'List scheduled transactions',          category: '⚙️ Rules' },
+
+  // Transfers & Auditing
+  'audit-historical-transfers':  { description: 'Find transfer candidates',        category: '🔍 Auditing' },
+  'apply-transfer-links':        { description: 'Link matched transfers',          category: '🔍 Auditing',   args: { pairs: [] } },
+  'bank-sync':                   { description: 'Sync with bank',                  category: '🔍 Auditing',   args: { accountId: '' } },
+};
+
+// Helper: get unique categories from presets
+export function getCategories(): string[] {
+  const cats = new Set(Object.values(TOOL_PRESETS).map(p => p.category));
+  return Array.from(cats).sort();
+}

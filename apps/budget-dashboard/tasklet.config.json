@@ -1,0 +1,5 @@
+{
+  "name": "budget-dashboard",
+  "displayName": "Budget Dashboard",
+  "description": "Interactive Actual Budget dashboard showing spending vs budget, uncategorized transactions, and category breakdowns"
+}

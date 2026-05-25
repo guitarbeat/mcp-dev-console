@@ -1,77 +1,71 @@
 # Contributing to MCP Dev Console
 
-Thanks for your interest in contributing! Here's how to get started.
+Thanks for your interest! This guide covers the monorepo structure and development workflow.
+
+## Repository Layout
+
+| Path | What |
+|------|------|
+| `apps/web/` | React UI (Tasklet instant app) |
+| `packages/mcp-client/` | MCP protocol client library |
+| `.github/` | CI workflows + issue/PR templates |
 
 ## Development Setup
 
-This is a [Tasklet](https://tasklet.ai) instant app. To develop locally:
-
-1. Clone the repository
-2. Copy `.env.example` to `.env` and configure your MCP server
-3. Open in a Tasklet workspace — the app runs in the preview panel
-
-## Project Structure
-
-```
-app.tsx                    # Main app component
-types.ts                   # Shared TypeScript types
-styles.css                 # Custom styles (DaisyUI extensions)
-components/
-├── ToolSidebar.tsx        # Tool browser with search & categories
-├── RequestPanel.tsx       # Request builder & response viewer
-└── HistoryBar.tsx         # Request history timeline
-utils/
-├── mcp.ts                 # MCP client (session, JSON-RPC, transport)
-└── presets.ts             # Tool category definitions
+```bash
+git clone https://github.com/guitarbeat/mcp-dev-console.git
+cd mcp-dev-console
+cp .env.example .env
 ```
 
-## Guidelines
+## Where to Make Changes
 
-### Code Style
-- TypeScript strict mode
-- Functional React components with hooks
-- DaisyUI + Tailwind for styling (no raw CSS unless necessary)
-- Keep components focused — one responsibility per file
+| Change | Location |
+|--------|----------|
+| MCP protocol feature | `packages/mcp-client/src/` |
+| UI component | `apps/web/components/` |
+| Tool presets | `apps/web/utils/presets.ts` |
+| Protocol types | `packages/mcp-client/src/types.ts` |
+| UI-only types | `apps/web/types.ts` |
 
-### Commits
-- Use [Conventional Commits](https://www.conventionalcommits.org/):
-  - `feat:` — new feature
-  - `fix:` — bug fix
-  - `refactor:` — code restructuring
-  - `docs:` — documentation only
-  - `style:` — formatting, no logic change
+## Type Checking
 
-### Pull Requests
-1. Fork the repo and create a feature branch
-2. Keep changes focused — one PR per feature/fix
-3. Update the README if adding new features
-4. Test with at least one MCP server before submitting
-
-## Adding Tool Presets
-
-To add presets for a new MCP server, edit `utils/presets.ts`:
-
-```typescript
-export const MY_SERVER_PRESETS: Record<string, ToolPreset> = {
-  'my-tool': {
-    description: 'What this tool does',
-    category: 'My Category',
-    args: { param1: 'default-value' }
-  }
-};
+```bash
+cd packages/mcp-client && npx tsc --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
-## Reporting Bugs
+## Formatting
 
-Use [GitHub Issues](../../issues) with the **Bug Report** template. Include:
-- Steps to reproduce
-- Expected vs actual behavior
-- MCP server type (if relevant)
-- Screenshots if applicable
+```bash
+npx prettier --check '**/*.{ts,tsx,json,md,css}'   # check
+npx prettier --write '**/*.{ts,tsx,json,md,css}'    # fix
+```
 
-## Feature Requests
+## Commit Convention
 
-Use [GitHub Issues](../../issues) with the **Feature Request** template. Describe:
-- The problem you're trying to solve
-- Your proposed solution
-- Alternatives you've considered
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat(web): add dark mode toggle
+fix(mcp-client): handle SSE reconnection
+docs: update README architecture diagram
+chore: update CI node version
+```
+
+Scopes: `web`, `mcp-client`, `ci`, or omit for cross-cutting changes.
+
+## Pull Request Checklist
+
+- [ ] Type checks pass in both packages
+- [ ] Code is formatted (`prettier --check`)
+- [ ] New exports added to barrel files (`index.ts`)
+- [ ] README updated if public API changed
+- [ ] Commits follow conventional format
+
+## Architecture Notes
+
+- **Monorepo** — protocol client and UI are co-located but independently importable
+- **Relative imports** — packages reference each other via relative paths
+- **No bundler config** — Tasklet's instant app runtime handles bundling
+- **curl transport** — MCP client uses curl via Tasklet bridge (sandboxed environment)

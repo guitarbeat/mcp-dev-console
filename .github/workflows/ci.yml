@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g typescript @types/react @types/react-dom
+      - name: Type check MCP client
+        run: cd packages/mcp-client && npx tsc --noEmit --strict --target ES2022 --module ESNext --moduleResolution bundler --esModuleInterop src/index.ts
+      - name: Type check web app
+        run: cd apps/web && npx tsc --noEmit
+
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g prettier
+      - run: npx prettier --check '**/*.{ts,tsx,json,md,css}' --ignore-path .gitignore

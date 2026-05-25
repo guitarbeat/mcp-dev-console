@@ -1,12 +1,29 @@
-# Build artifacts
-bundle.js
-bundle.css
-index.html
-.tasklet-build-cache.json
-
 # Dependencies
 node_modules/
+
+# Build
+dist/
+bundle.js
+bundle.css
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tasklet
+tasklet-env.d.ts

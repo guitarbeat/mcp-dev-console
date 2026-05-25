@@ -1,143 +1,137 @@
 # MCP Dev Console
 
-A Postman-style developer console for testing and debugging [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers. Built as a [Tasklet](https://tasklet.ai) instant app.
+> A Postman-style tool explorer for [Model Context Protocol](https://modelcontextprotocol.io/) servers.
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-React_18-3178c6.svg)](https://www.typescriptlang.org/)
-[![MCP](https://img.shields.io/badge/MCP-2025--03--26-blue.svg)](https://modelcontextprotocol.io/)
+Browse, test, and debug any MCP server's tools through an interactive UI. Connect to any MCP-compatible server, explore its tool catalog, craft requests with a JSON editor, and inspect responses — all in real time.
 
-## Features
+---
 
-| Feature | Description |
-|---------|-------------|
-| 🔍 **Tool Browser** | Search and browse all MCP tools with category grouping |
-| 📝 **Request Builder** | JSON editor with auto-populated schemas from tool definitions |
-| 📊 **Response Viewer** | Syntax-highlighted JSON responses with error detection |
-| ⏱️ **Timing Metrics** | Response time tracking for every request |
-| 📜 **Request History** | Scrollable history bar with status badges |
-| ⚙️ **Connection Settings** | Configurable server URL and bearer token via modal |
-| 🔄 **Cold Start Detection** | Automatic retry on 503 responses (common with sleeping servers) |
-| 📁 **Preset Categories** | Tools organized by domain — extensible for any MCP server |
+## Monorepo Structure
 
-## Screenshots
+```
+├── apps/
+│   └── web/                 # React UI (Tasklet instant app)
+│       ├── app.tsx          # Root component — layout, connection, state
+│       ├── components/      # UI panels
+│       │   ├── ToolSidebar  # Tool browser with search + categories
+│       │   ├── RequestPanel # Schema viewer, JSON editor, executor
+│       │   └── HistoryBar   # Request log with replay
+│       ├── utils/
+│       │   └── presets.ts   # Quick-launch tool configurations
+│       ├── types.ts         # UI-specific types
+│       └── styles.css       # DaisyUI + custom styles
+│
+├── packages/
+│   └── mcp-client/          # Protocol client library
+│       └── src/
+│           ├── client.ts    # HTTP+SSE transport, session mgmt
+│           ├── types.ts     # MCP protocol types
+│           └── index.ts     # Public API barrel
+│
+├── .github/
+│   ├── workflows/ci.yml     # Type checking + formatting
+│   ├── ISSUE_TEMPLATE/      # Bug report + feature request forms
+│   └── pull_request_template.md
+│
+├── CONTRIBUTING.md           # Dev setup + contribution guide
+└── LICENSE                   # MIT
+```
 
-> 📸 Coming soon — screenshots of the three-panel layout, tool browser, and response viewer.
+## Packages
 
-<!-- Uncomment when screenshots are added:
-![Tool Browser](docs/screenshots/tool-browser.png)
-![Request Builder](docs/screenshots/request-builder.png)
--->
+### `@mcp-dev-console/web`
+
+The interactive UI built with React 19 + DaisyUI. Runs as a [Tasklet](https://tasklet.ai) instant app.
+
+**Features:**
+- 🔍 **Tool Browser** — Searchable sidebar grouped by category
+- ✏️ **Request Builder** — Auto-generated form from tool JSON Schema, with raw JSON editor
+- ▶️ **One-Click Execute** — Call any tool and see formatted + raw responses
+- 📜 **History** — Timestamped log of every request with one-click replay
+- ⚡ **Presets** — Configurable quick-launch shortcuts for common operations
+- ⚙️ **Connection Modal** — Server URL + bearer token configuration
+
+### `@mcp-dev-console/mcp-client`
+
+Lightweight MCP client with:
+- JSON-RPC 2.0 request/response handling
+- Automatic `Mcp-Session-Id` tracking
+- SSE response stream parsing
+- Cold-start resilience (Render, Railway, etc.)
 
 ## Quick Start
 
-### 1. Clone the repo
+### As a Tasklet Instant App
+
+1. Clone this repo
+2. Copy `apps/web/` to your Tasklet apps folder
+3. Open in Tasklet — the app auto-connects when you provide a server URL and token
+
+### Development
 
 ```bash
 git clone https://github.com/guitarbeat/mcp-dev-console.git
+cd mcp-dev-console
+cp .env.example .env   # Configure your MCP server URL + token
 ```
 
-### 2. Configure your MCP server
+### Type Check
 
 ```bash
-cp .env.example .env
-# Edit .env with your MCP server URL and token
+cd packages/mcp-client && npx tsc --noEmit
+cd apps/web && npx tsc --noEmit
 ```
 
-### 3. Open in Tasklet
-
-Copy the files to your Tasklet workspace:
+## MCP Protocol Flow
 
 ```
-/agent/home/apps/mcp-dev-console/
+Client                          Server
+  │                               │
+  ├── initialize ────────────────►│
+  │◄──────────── serverInfo ──────┤  ← Mcp-Session-Id captured
+  │                               │
+  ├── notifications/initialized ─►│
+  │                               │
+  ├── tools/list ────────────────►│
+  │◄──────────── tool catalog ────┤  ← Populates sidebar
+  │                               │
+  ├── tools/call { name, args } ─►│
+  │◄──────────── result ──────────┤  ← Response panel
 ```
 
-The app will appear in the preview panel. It auto-connects on launch using the settings modal (⚙️).
+## Adding Presets
 
-### 4. Start testing
+Edit `apps/web/utils/presets.ts`:
 
-1. **Browse** tools in the left sidebar
-2. **Select** a tool to see its schema
-3. **Edit** the JSON arguments
-4. **Execute** and inspect the response
-
-## Architecture
-
-```
-mcp-dev-console/
-├── app.tsx                     # Main app — connection state, layout, tool routing
-├── types.ts                    # Shared TypeScript interfaces
-├── styles.css                  # Custom styles (extends DaisyUI)
-├── components/
-│   ├── ToolSidebar.tsx         # Left panel — search, categories, tool list
-│   ├── RequestPanel.tsx        # Center panel — schema, editor, response viewer
-│   └── HistoryBar.tsx          # Bottom bar — request history timeline
-├── utils/
-│   ├── mcp.ts                  # MCP client — session mgmt, JSON-RPC, transport
-│   └── presets.ts              # Tool category presets (extensible)
-├── .env.example                # Configuration template
-├── .github/
-│   ├── ISSUE_TEMPLATE/         # Bug report & feature request templates
-│   └── pull_request_template.md
-├── CONTRIBUTING.md             # Contribution guidelines
-└── LICENSE                     # MIT License
-```
-
-## How It Works
-
-The console communicates with MCP servers using the [Streamable HTTP transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http):
-
-```
-┌─────────────┐    initialize     ┌─────────────┐
-│  Dev Console │ ──────────────►  │  MCP Server  │
-│              │ ◄──────────────  │              │
-│              │  session-id      │              │
-│              │                  │              │
-│              │   tools/list     │              │
-│              │ ──────────────►  │              │
-│              │ ◄──────────────  │              │
-│              │   tool schemas   │              │
-│              │                  │              │
-│              │   tools/call     │              │
-│              │ ──────────────►  │              │
-│              │ ◄──────────────  │              │
-│              │   result/error   │              │
-└─────────────┘                  └─────────────┘
-```
-
-1. **Initialize** — Handshake via `initialize` JSON-RPC, captures `Mcp-Session-Id` header
-2. **Discover** — Fetches full tool catalog via `tools/list`
-3. **Execute** — Sends `tools/call` with user-provided arguments
-4. **Display** — Renders response with syntax highlighting and error detection
-
-## Customizing Presets
-
-The tool presets in `utils/presets.ts` organize tools into categories. To add presets for your own MCP server:
-
-```typescript
-// utils/presets.ts
-export const TOOL_PRESETS: Record<string, ToolPreset> = {
-  'my-tool': {
-    description: 'What this tool does',
-    category: '🔧 My Category',
-    args: { param: 'default-value' }
+```ts
+export const PRESETS: PresetCall[] = [
+  {
+    id: "my-preset",
+    label: "My Custom Query",
+    description: "Fetch something useful",
+    icon: "🔎",
+    tool: "my-tool-name",
+    args: { param: "value" },
+    category: "Custom",
   },
-  // ... more tools
-};
+];
 ```
-
-Tools not matching any preset are automatically grouped under "Other".
 
 ## Tech Stack
 
-- **React 18** + **TypeScript** — UI framework
-- **DaisyUI** + **Tailwind CSS** — Component styling
-- **JSON-RPC 2.0** — MCP protocol wire format
-- **curl** — HTTP transport via Tasklet sandbox
+| Layer | Technology |
+|-------|-----------|
+| UI Framework | React 19 |
+| Styling | DaisyUI 4 + Tailwind |
+| Icons | Lucide React |
+| Transport | HTTP + SSE via curl |
+| Protocol | MCP (JSON-RPC 2.0) |
+| CI | GitHub Actions |
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, and PR guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, code style, and PR guidelines.
 
 ## License
 
-[MIT](LICENSE) © Aaron L Woods
+[MIT](LICENSE)

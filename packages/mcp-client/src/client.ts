@@ -1,4 +1,4 @@
-import { ServerConfig, McpTool } from '../types';
+import { ServerConfig, McpTool } from './types';
 
 let requestId = 0;
 let currentSessionId: string | null = null;

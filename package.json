@@ -1,13 +1,16 @@
 {
+  "name": "mcp-dev-console",
   "private": true,
-  "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "lucide-react": "^0.523.0"
+  "description": "Monorepo for MCP Dev Console — a Postman-style tool explorer for Model Context Protocol servers",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "lint": "tsc --noEmit --project apps/web/tsconfig.json",
+    "format": "prettier --write '**/*.{ts,tsx,json,md,css}'",
+    "format:check": "prettier --check '**/*.{ts,tsx,json,md,css}'"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
-  }
+    "prettier": "^3.3.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": { "node": ">=20" }
 }

@@ -1,16 +1,17 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Wifi, WifiOff, Loader2, Settings, X, Terminal } from 'lucide-react';
+import { Wifi, WifiOff, Loader2, Settings, X, Terminal, ClipboardCheck } from 'lucide-react';
 import { ToolSidebar } from './components/ToolSidebar';
 import { RequestPanel } from './components/RequestPanel';
 import { HistoryBar } from './components/HistoryBar';
-import { McpTool, LogEntry, ConnectionStatus, ServerConfig, HistoryEntry } from './types';
+import { SchemaAudit } from './components/SchemaAudit';
+import { McpTool, LogEntry, ConnectionStatus, ServerConfig, HistoryEntry, AppView } from './types';
 import { initialize, listTools, clearSession } from './utils/mcp';
 import { PRESETS } from './utils/presets';
 import './styles.css';
 
-const DEFAULT_URL = '';
-const DEFAULT_TOKEN = '';
+const DEFAULT_URL = 'https://actual-mcp.onrender.com/mcp';
+const DEFAULT_TOKEN = '9d7ed444f28745aa225d7ab219c00b1500414949121412002b2d34ad7f1bc97b';
 
 const App: React.FC<{}> = () => {
   const [url, setUrl] = useState(DEFAULT_URL);
@@ -22,6 +23,7 @@ const App: React.FC<{}> = () => {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [presetArgs, setPresetArgs] = useState<string | undefined>(undefined);
   const [showSettings, setShowSettings] = useState(false);
+  const [view, setView] = useState<AppView>('console');
   const logIdRef = useRef(0);
   const connectingRef = useRef(false);
 
@@ -104,6 +106,24 @@ const App: React.FC<{}> = () => {
       <div className="flex items-center bg-base-200 h-10 px-3 border-b border-base-300 shrink-0 gap-2">
         <Terminal size={15} className="text-primary shrink-0" />
         <span className="font-bold text-sm tracking-tight shrink-0">MCP Dev Console</span>
+        <div className="flex items-center gap-0.5 ml-3">
+          <button
+            className={`btn btn-xs gap-1 ${view === 'console' ? 'btn-primary btn-outline' : 'btn-ghost'}`}
+            onClick={() => setView('console')}
+          >
+            <Terminal size={11} />
+            <span className="text-[10px]">Console</span>
+          </button>
+          <button
+            className={`btn btn-xs gap-1 ${view === 'audit' ? 'btn-primary btn-outline' : 'btn-ghost'}`}
+            onClick={() => setView('audit')}
+            disabled={tools.length === 0}
+            title={tools.length === 0 ? 'Connect to run audit' : 'Schema audit report'}
+          >
+            <ClipboardCheck size={11} />
+            <span className="text-[10px]">Audit</span>
+          </button>
+        </div>
         <div className="flex-1" />
         <div className={`flex items-center gap-1.5 text-xs ${s.color}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
@@ -145,34 +165,40 @@ const App: React.FC<{}> = () => {
       )}
 
       {/* Main */}
-      <div className="flex-1 min-h-0 flex overflow-hidden">
-        <div className="w-48 shrink-0 border-r border-base-300 p-2 bg-base-100">
-          <ToolSidebar
-            tools={tools}
-            presets={PRESETS}
-            selectedTool={selectedTool}
-            onSelectTool={(name) => { setSelectedTool(name); setPresetArgs(undefined); }}
-            onRunPreset={handleRunPreset}
-            connected={status === 'connected'}
+      {view === 'console' ? (
+        <>
+          <div className="flex-1 min-h-0 flex overflow-hidden">
+            <div className="w-48 shrink-0 border-r border-base-300 p-2 bg-base-100">
+              <ToolSidebar
+                tools={tools}
+                presets={PRESETS}
+                selectedTool={selectedTool}
+                onSelectTool={(name) => { setSelectedTool(name); setPresetArgs(undefined); }}
+                onRunPreset={handleRunPreset}
+                connected={status === 'connected'}
+              />
+            </div>
+            <div className="flex-1 min-w-0 min-h-0 bg-base-100">
+              <RequestPanel
+                tool={selected}
+                config={config}
+                onLog={addLog}
+                onHistory={addHistory}
+                initialArgs={presetArgs}
+              />
+            </div>
+          </div>
+          <HistoryBar
+            history={history}
+            onReplay={handleReplay}
+            onClear={() => setHistory([])}
           />
+        </>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <SchemaAudit tools={tools} />
         </div>
-        <div className="flex-1 min-w-0 min-h-0 bg-base-100">
-          <RequestPanel
-            tool={selected}
-            config={config}
-            onLog={addLog}
-            onHistory={addHistory}
-            initialArgs={presetArgs}
-          />
-        </div>
-      </div>
-
-      {/* History */}
-      <HistoryBar
-        history={history}
-        onReplay={handleReplay}
-        onClear={() => setHistory([])}
-      />
+      )}
     </div>
   );
 };

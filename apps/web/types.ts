@@ -1,20 +1,35 @@
-// Re-export protocol types from the mcp-client package
-export type {
-  ServerConfig,
-  McpTool,
-  SchemaProperty,
-  ConnectionStatus,
-} from "../../packages/mcp-client/src/types";
+export interface ServerConfig {
+  url: string;
+  bearerToken?: string;
+}
 
-// ── UI-specific types ──
+export interface SchemaProperty {
+  type?: string;
+  description?: string;
+  enum?: string[];
+  default?: unknown;
+  items?: { type?: string };
+}
+
+export interface McpTool {
+  name: string;
+  description?: string;
+  inputSchema?: {
+    type: string;
+    properties?: Record<string, SchemaProperty>;
+    required?: string[];
+  };
+}
+
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface LogEntry {
   id: number;
   timestamp: Date;
   method: string;
-  direction: "sent" | "received";
+  direction: 'sent' | 'received';
   body: string;
-  status: "success" | "error";
+  status: 'success' | 'error';
   durationMs?: number;
 }
 
@@ -24,7 +39,7 @@ export interface HistoryEntry {
   toolName: string;
   args: string;
   durationMs: number;
-  status: "success" | "error";
+  status: 'success' | 'error';
   response: string;
   responseSize: number;
 }
@@ -39,4 +54,6 @@ export interface PresetCall {
   category: string;
 }
 
-export type ResponseTab = "formatted" | "raw" | "curl";
+export type ResponseTab = 'formatted' | 'raw' | 'curl';
+
+export type AppView = 'console' | 'audit';
